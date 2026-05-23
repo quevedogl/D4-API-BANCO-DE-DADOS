@@ -1,26 +1,46 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/navegation/Header";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
-    if (!email) {
-      setErro("Informe o seu email!");
-      return;
-    }
-    if (!senha) {
-      setErro("Informe a senha!");
-      return;
-    }
+  async function handleLogin() {
+    if (!email) { setErro("Informe o seu email!"); return; }
+    if (!senha) { setErro("Informe a senha!"); return; }
+
     setErro("");
-    alert("Login realizado com sucesso!");
-    setEmail("");
-    setSenha("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:3003/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: senha }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErro(data.message || "Credenciais inválidas.");
+        return;
+      }
+
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      router.push("/home");
+    } catch {
+      setErro("Erro de conexão com o servidor.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -50,10 +70,16 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition"
+          disabled={loading}
+          className="w-full bg-cyan-500 hover:bg-cyan-600 disabled:opacity-60 text-white font-bold py-3 rounded-lg transition"
         >
-          Entrar
+          {loading ? "Entrando..." : "Entrar"}
         </button>
+
+        <p className="text-center text-gray-700 mt-2">
+          Não tem conta?
+          <a href="/cadastro" className="text-cyan-500 ml-1 hover:underline">Cadastre-se</a>
+        </p>
       </div>
     </div>
   );

@@ -1,32 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/navegation/Header";
 
 export default function CadastroCliente() {
+  const router = useRouter();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleCadastro() {
-    if (!nome) {
-      setErro("Informe seu nome!");
-      return;
-    }
-    if (!email) {
-      setErro("Informe seu e-mail!");
-      return;
-    }
-    if (!senha) {
-      setErro("Informe a senha!");
-      return;
-    }
+  async function handleCadastro() {
+    if (!nome) { setErro("Informe seu nome!"); return; }
+    if (!email) { setErro("Informe seu e-mail!"); return; }
+    if (!senha) { setErro("Informe a senha!"); return; }
+
     setErro("");
-    alert("Cadastro realizado!");
-    setNome("");
-    setEmail("");
-    setSenha("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:3003/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nome, email, password: senha }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErro(data.message || "Erro ao cadastrar.");
+        return;
+      }
+
+      router.push("/login");
+    } catch {
+      setErro("Erro de conexão com o servidor.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -63,13 +76,14 @@ export default function CadastroCliente() {
 
         <button
           onClick={handleCadastro}
-          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3 rounded-lg cursor-pointer transition"
+          disabled={loading}
+          className="w-full bg-cyan-500 hover:bg-cyan-600 disabled:opacity-60 text-white py-3 rounded-lg cursor-pointer transition"
         >
-          Cadastrar
+          {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
 
         <p className="text-center text-gray-700 mt-2">
-          Já tem conta? 
+          Já tem conta?
           <a href="/login" className="text-cyan-500 ml-1 hover:underline">Entre</a>
         </p>
       </div>
