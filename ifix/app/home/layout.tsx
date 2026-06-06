@@ -1,16 +1,23 @@
+"use client";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { useState } from "react";
+import Sidebar from "@/components/navegation/Sidebar";
+import BottomTab from "@/components/navegation/BottonTab";
+
+export default function HomeLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <html lang="pt-br">
-      <body className="bg-gray-100 flex justify-center">
-        <div className="w-full max-w-6xl bg-white min-h-screen shadow-lg">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className="relative flex flex-col min-h-screen bg-gray-100">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className="flex-1 pb-14">
+        {children}
+      </main>
+
+      <div className="fixed bottom-0 left-0 right-0 z-30">
+        <BottomTab onMenuClick={() => setSidebarOpen(true)} />
+      </div>
+    </div>
   );
 }

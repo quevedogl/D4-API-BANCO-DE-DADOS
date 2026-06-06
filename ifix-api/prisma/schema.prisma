@@ -4,13 +4,40 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String           @id @default(uuid())
   name      String
-  email     String   @unique
+  email     String           @unique
   password  String
+  createdAt DateTime         @default(now())
+  requests  ServiceRequest[]
+}
+
+model Company {
+  id        String           @id @default(uuid())
+  name      String
+  email     String           @unique
+  password  String
+  cnpj      String           @unique
+  specialty String?
+  rating    Float            @default(0)
+  createdAt DateTime         @default(now())
+  requests  ServiceRequest[]
+}
+
+model ServiceRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  companyId String
+  product   String
+  brand     String
+  model     String?
+  condition String
+  status    String   @default("pending")
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  company   Company  @relation(fields: [companyId], references: [id])
 }
